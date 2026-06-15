@@ -3,6 +3,9 @@
 .mvn/wrapper
 mvnw
 mvnw.cmd
+.DS_Store
+.ipynb_checkpoints/
+*.class
 
 ### STS ###
 .apt_generated
