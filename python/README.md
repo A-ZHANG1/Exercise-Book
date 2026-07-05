@@ -285,3 +285,67 @@ nums = [1, 2, 3, 4, 5] # 中间元素 nums[2]，即 len//2 = 2 ✓
 ```
 
 > **记忆口诀**：数学位置 = Python 索引 + 1，写代码时用 `//2` 就够了。
+#### 6.4 整数逐位处理：字符串法也是常规思路
+
+在 Python 刷题里，如果只是想**看一个整数的每一位**，先转成字符串通常更直观，不算“假操作”，而是很常见的写法。
+
+| 方法 | 写法特点 | 适合场景 |
+|---|---|---|
+| 字符串法 | 简洁直观 | 比较每位大小、计数、判断是否包含某位 |
+| 数学拆位法 | 更通用 | 进位、反转数字、构造新数、跨语言写法 |
+
+```python
+# 字符串法
+s = str(num)
+mx = max(s)
+mn = min(s)
+digit_range = int(mx) - int(mn)
+```
+
+```python
+# 数学拆位法
+x = num
+mx = 0
+mn = 9
+while x > 0:
+    d = x % 10
+    mx = max(mx, d)
+    mn = min(mn, d)
+    x //= 10
+digit_range = mx - mn
+```
+
+> 记法：如果题目只是“遍历数位、比较数位”，Python 里优先想想能不能先 `str(num)`。
+
+#### 6.5 常见代码坑：别覆盖内置函数
+
+| Pitfall | 错误写法 | 正确写法 | 说明 |
+|---|---|---|---|
+| 把 `str` 当变量名 | `str = ...` | `s = str(num)` | 会覆盖内置 `str()` |
+| 把 `min/max/sum` 当变量名 | `min = ...`, `max = ...`, `sum = ...` | `mn/mx/total` | 会覆盖内置函数，后面不能正常调用 |
+| 误写成 `string(n)` | `string(n)` | `str(n)` | Python 没有内置 `string()` |
+| 直接相减字符 | `max(s) - min(s)` | `int(max(s)) - int(min(s))` | `max(s)` 和 `min(s)` 得到的是字符 |
+
+#### 6.6 维护答案时的思路坑
+
+这类题经常不是“找到一个更优值就继续加”，而是：
+
+1. 如果当前值 **更大**，先更新最佳标准，再**重置答案**
+2. 如果当前值 **相等**，再把当前数字加进去
+
+```python
+best_range = -1
+total = 0
+
+for num in nums:
+    s = str(num)
+    digit_range = int(max(s)) - int(min(s))
+
+    if digit_range > best_range:
+        best_range = digit_range
+        total = num
+    elif digit_range == best_range:
+        total += num
+```
+
+> 关键 pitfall：**遇到更大的标准时，答案要重置，不是继续累加。**
