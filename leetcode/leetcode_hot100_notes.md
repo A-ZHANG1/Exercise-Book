@@ -307,6 +307,19 @@ class LRUCache(collections.OrderedDict):
             self.popitem(last=False)  # 淘汰最久未使用（开头）
 ```
 
+**⚠️ 自己写 OrderedDict 版时踩过的坑：**
+
+| 错误写法 | 问题 | 正确写法 |
+|---------|------|---------|
+| `self.cache = __super` | 混用"继承 OrderedDict"和"内部持有 cache"两套设计；`__super` 未定义 → `NameError` | 二选一：继承就直接用 `self`，或改成 `self.cache = collections.OrderedDict()` |
+| `if key not in cache:` | 漏写 `self`，`cache` 是未定义变量 → `NameError` | 继承版用 `key not in self`；组合版用 `key not in self.cache` |
+| `cache.pop_item()` | 方法名拼错，且 `popitem()` 默认弹**末尾（最新）** | `self.popitem(last=False)` —— 必须 `last=False` 才弹**开头（最旧）** |
+| `self.cache.put(key)` | `OrderedDict` 没有 `put`，且没传 value | `self[key] = value`（直接当 dict 赋值） |
+| put 里只 `move_to_end` 没赋值 | 命中已存在的 key 时忘了写入新 value，且新增 key 根本没插进去 | 无论是否已存在，最后统一 `self[key] = value`，再判断是否超容量淘汰 |
+| `// 注释` | Python 用 `#`，`//` 是 C/Java 的写法 | `# 注释` |
+
+> **为什么命中要 `move_to_end`？** 约定"末尾=最近使用、开头=最久未使用"。每次 get/put 命中就把它移到末尾标记为"最新"；容量满时 `popitem(last=False)` 从开头淘汰最久没碰过的，这就是 LRU 的核心。
+
 **⚠️ 关键接口记忆：**
 
 | 接口 | 作用 | 时间复杂度 |
