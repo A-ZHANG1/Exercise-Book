@@ -349,3 +349,57 @@ for num in nums:
 ```
 
 > 关键 pitfall：**遇到更大的标准时，答案要重置，不是继续累加。**
+
+### 7. 数组（list）常用函数
+
+Python 列表（`list`）自带的常用方法，刷题里几乎离不开，比如 `append`、`sort`。
+
+| 方法 | 作用 | 返回值 | 是否原地修改 |
+|---|---|---|---|
+| `list.append(x)` | 末尾添加一个元素 | `None` | 是 |
+| `list.extend(iterable)` | 末尾追加另一个可迭代对象的所有元素 | `None` | 是 |
+| `list.insert(i, x)` | 在下标 `i` 处插入元素 | `None` | 是 |
+| `list.remove(x)` | 删除第一个值为 `x` 的元素（找不到会报错） | `None` | 是 |
+| `list.pop(i=-1)` | 删除并返回下标 `i` 的元素，默认删最后一个 | 被删的元素 | 是 |
+| `list.clear()` | 清空整个列表 | `None` | 是 |
+| `list.index(x)` | 返回第一个值为 `x` 的下标（找不到会报错） | `int` | 否 |
+| `list.count(x)` | 统计 `x` 出现的次数 | `int` | 否 |
+| `list.sort()` | 原地排序 | `None` | 是 |
+| `list.reverse()` | 原地反转 | `None` | 是 |
+| `list.copy()` | 浅拷贝出一份新列表 | `list` | 否 |
+
+#### 常见写法
+
+```python
+nums = [3, 1, 2]
+
+nums.append(4)       # [3, 1, 2, 4]
+nums.extend([5, 6])  # [3, 1, 2, 4, 5, 6]
+nums.insert(0, 9)    # [9, 3, 1, 2, 4, 5, 6]
+nums.pop()           # 返回 6，nums 变为 [9, 3, 1, 2, 4, 5]
+nums.remove(9)       # 按值删除，nums 变为 [3, 1, 2, 4, 5]
+nums.sort()          # 原地排序，nums 变为 [1, 2, 3, 4, 5]
+nums.reverse()       # 原地反转，nums 变为 [5, 4, 3, 2, 1]
+```
+
+#### 最大的坑：这些方法大多返回 `None`
+
+`append / extend / insert / remove / sort / reverse / clear` 都是**原地修改、返回 `None`**，千万不能写成赋值：
+
+| Pitfall | 错误写法 | 正确写法 | 说明 |
+|---|---|---|---|
+| 用返回值覆盖原列表 | `nums = nums.sort()` | `nums.sort()` | `sort()` 返回 `None`，`nums` 会变成 `None` |
+| append 当成能返回新列表 | `nums2 = nums.append(x)` | `nums.append(x)` 再 `nums2 = nums` | `append()` 不返回新列表，也是 `None` |
+| pop 和 remove 搞混 | `nums.pop(x)` 想按值删 | `nums.remove(x)` | `pop(i)` 传的是**下标**，`remove(x)` 传的才是**值** |
+
+> 记法：想要"返回新对象"用 `sorted(x)` / `list(reversed(x))`；想要"原地改"用 `x.sort()` / `x.reverse()`。同一个坑，`sort/sorted` 和 `reverse/reversed` 是一对。
+
+#### 切片（slice）也很常用
+
+```python
+nums[1:3]     # 下标 1、2（不含 3）
+nums[:2]      # 前两个
+nums[-2:]     # 最后两个
+nums[::-1]    # 整体反转，返回新列表，不改变原列表
+nums[:]       # 浅拷贝
+```
