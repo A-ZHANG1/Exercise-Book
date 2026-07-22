@@ -403,3 +403,73 @@ nums[-2:]     # 最后两个
 nums[::-1]    # 整体反转，返回新列表，不改变原列表
 nums[:]       # 浅拷贝
 ```
+
+### 8. 集合（set）常用操作
+
+`set` 是无序、不重复元素的集合，刷题里常用来去重、查重（`in` 判断平均 O(1)），以及处理交并差集问题。
+
+#### 常用方法
+
+| 方法 | 作用 | 返回值 | 是否原地修改 |
+|---|---|---|---|
+| `set.add(x)` | 添加一个元素 | `None` | 是 |
+| `set.remove(x)` | 删除元素 `x`（不存在会报错 `KeyError`） | `None` | 是 |
+| `set.discard(x)` | 删除元素 `x`（不存在不报错） | `None` | 是 |
+| `set.pop()` | 随机弹出并返回一个元素 | 被删的元素 | 是 |
+| `set.clear()` | 清空集合 | `None` | 是 |
+| `set.copy()` | 浅拷贝出一份新集合 | `set` | 否 |
+| `set.union(other)` | 并集 | 新 `set` | 否 |
+| `set.intersection(other)` | 交集 | 新 `set` | 否 |
+| `set.difference(other)` | 差集（在 `set` 里但不在 `other` 里） | 新 `set` | 否 |
+| `set.symmetric_difference(other)` | 对称差集（只出现在其中一个里） | 新 `set` | 否 |
+| `set.update(other)` | 并集结果写回自己 | `None` | 是 |
+| `set.intersection_update(other)` | 交集结果写回自己 | `None` | 是 |
+| `set.difference_update(other)` | 差集结果写回自己 | `None` | 是 |
+| `set.issubset(other)` | 是否是 `other` 的子集 | `bool` | 否 |
+| `set.issuperset(other)` | 是否是 `other` 的超集 | `bool` | 否 |
+| `set.isdisjoint(other)` | 和 `other` 是否没有交集 | `bool` | 否 |
+
+#### 运算符写法（更常用，等价于上面部分方法）
+
+```python
+a = {1, 2, 3}
+b = {2, 3, 4}
+
+a | b   # 并集 -> {1, 2, 3, 4}
+a & b   # 交集 -> {2, 3}
+a - b   # 差集 -> {1}
+a ^ b   # 对称差集 -> {1, 4}
+```
+
+对应的原地版本：
+
+```python
+a |= b   # 等价于 a.update(b)
+a &= b   # 等价于 a.intersection_update(b)
+a -= b   # 等价于 a.difference_update(b)
+a ^= b   # 等价于 a.symmetric_difference_update(b)
+```
+
+#### 集合推导式
+
+```python
+squares = {x * x for x in range(5)}   # {0, 1, 4, 9, 16}
+```
+
+#### 常见坑
+
+| Pitfall | 错误写法 / 误解 | 正确写法 / 说明 |
+|---|---|---|
+| 空集合写成 `{}` | `s = {}` | `{}` 是空 `dict`，空集合要写 `s = set()` |
+| `remove` 找不到元素会报错 | `s.remove(x)`（`x` 不在 `s` 里） | 不确定是否存在就用 `s.discard(x)`，不会报错 |
+| set 无序，不能索引 | `s[0]` | `set` 不支持下标访问，要用 `in` 判断，或者先转成 `list` |
+| set 元素必须可哈希 | `s.add([1, 2])` | `list` 不可哈希不能放进 `set`；可以用 `tuple` 代替 |
+| 依赖 `pop()` 弹出顺序 | 认为 `pop()` 会按插入顺序弹出 | `set` 无序，`pop()` 弹出哪个元素不保证 |
+
+#### 记忆重点
+
+1. 去重、查重优先想 `set`，`in` 判断平均 O(1)
+2. 交并差符号：`|` 并集、`&` 交集、`-` 差集、`^` 对称差集
+3. 想原地修改就用 `update` 系列方法或 `|= &= -= ^=`
+4. `remove` 会报错、`discard` 不会——不确定元素是否存在优先用 `discard`
+5. 空集合必须写 `set()`，`{}` 是字典不是集合
