@@ -473,3 +473,94 @@ squares = {x * x for x in range(5)}   # {0, 1, 4, 9, 16}
 3. 想原地修改就用 `update` 系列方法或 `|= &= -= ^=`
 4. `remove` 会报错、`discard` 不会——不确定元素是否存在优先用 `discard`
 5. 空集合必须写 `set()`，`{}` 是字典不是集合
+
+### 9. 固定窗口滑动 + 字符计数（Anagram 类问题）
+
+用于"在字符串 `s` 中找长度等于 `len(p)` 的子串，且是 `p` 的字符排列（anagram）"这类题，比如「找到字符串中所有字母异位词」。
+
+#### 核心思路
+
+- 用两个长度 26 的计数数组：`s_cnt` 表示当前窗口（大小固定为 `len(p)`）里每个字符出现的次数，`p_cnt` 表示 `p` 里每个字符出现的次数（从头到尾**只建立一次，之后不再变化**）。
+- 判断"当前窗口是不是 `p` 的异位词"，只需要 `s_cnt == p_cnt`。
+- 因为窗口大小固定，**不需要 while 循环收缩**，每次滑动只做"一进一出"：减去滑出窗口的字符、加上滑入窗口的字符。
+
+#### 模板代码
+
+```python
+def findAnagrams(s: str, p: str) -> List[int]:
+    s_len, p_len = len(s), len(p)
+    res = []
+    if s_len < p_len:
+        return res
+
+    s_cnt, p_cnt = [0] * 26, [0] * 26
+    for i in range(p_len):
+        s_cnt[ord(s[i]) - 97] += 1
+        p_cnt[ord(p[i]) - 97] += 1   # 目标计数，只在这里建立一次
+
+    if s_cnt == p_cnt:
+        res.append(0)
+
+    for i in range(s_len - p_len):
+        s_cnt[ord(s[i]) - 97] -= 1              # 滑出窗口的字符
+        s_cnt[ord(s[i + p_len]) - 97] += 1      # 滑入窗口的字符（同样更新 s_cnt！）
+        if s_cnt == p_cnt:
+            res.append(i + 1)
+
+    return res
+```
+
+#### 常见坑
+
+| Pitfall | 错误写法 | 说明 |
+|---|---|---|
+| 目标计数数组被误改 | 循环里写 `p_cnt[...] += 1` | `p_cnt` 应该固定不变，只能在最初建立一次，滑动过程中只准动 `s_cnt` |
+| 建立目标计数时用错字符串 | `p_cnt[ord(s[i]) - 97] += 1` | 应该用 `p[i]`，不是 `s[i]`；写错会让 `p_cnt` 变成 `s` 的前缀计数，判断永远"看起来对" |
+| 只减不加 / 只加不减 | 滑动时忘记同时做"移出+移入" | 每次滑动窗口都要**一减一加**，少一步窗口就不对了，`s_cnt` 甚至会出现负数 |
+
+#### 进阶优化：用 diff 计数代替整体比较
+
+每次都比较两个长度 26 的数组是 O(26)。如果不想每步都全量比较，可以维护一个 `diff` 变量，表示"当前窗口计数和目标计数不同的字符种类数"，每次加入/移出字符时只 O(1) 更新 `diff`，`diff == 0` 时就是异位词：
+
+```python
+def findAnagrams(s: str, p: str) -> List[int]:
+    s_len, p_len = len(s), len(p)
+    if s_len < p_len:
+        return []
+
+    cnt = [0] * 26          # cnt[c] = s 当前窗口里 c 的个数 - p 里 c 的个数
+    for ch in p:
+        cnt[ord(ch) - 97] -= 1
+
+    res = []
+    diff = sum(1 for x in cnt if x != 0)   # 有多少个字符的计数不为 0
+
+    for i in range(s_len):
+        c = ord(s[i]) - 97               # 滑入 s[i]
+        if cnt[c] == 0:
+            diff += 1
+        cnt[c] += 1
+        if cnt[c] == 0:
+            diff -= 1
+
+        left = i - p_len
+        if left >= 0:                    # 滑出 s[left]
+            c = ord(s[left]) - 97
+            if cnt[c] == 0:
+                diff += 1
+            cnt[c] -= 1
+            if cnt[c] == 0:
+                diff -= 1
+
+        if i >= p_len - 1 and diff == 0:
+            res.append(i - p_len + 1)
+
+    return res
+```
+
+#### 记忆重点
+
+1. 窗口大小**固定** → 不用 while 收缩，直接"一进一出"
+2. 目标计数数组（如 `p_cnt`）建立后**不能再变**，滑动时只改窗口计数数组（如 `s_cnt`）
+3. 判断异位词 = 两个计数数组相等；追求性能可以用 diff 计数把每步比较降到 O(1)
+4. 建立目标计数时字符串别搞混（`p[i]` 不是 `s[i]`）
